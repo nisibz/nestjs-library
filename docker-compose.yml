@@ -1,0 +1,36 @@
+services:
+  api:
+    build: .
+    container_name: library-api
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_HOST=postgres
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: library-postgres
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    env_file: ./.env
+    restart: always
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres:
+    name: library-datastore
+
+networks:
+  default:
+    name: library-network
+    external: true
