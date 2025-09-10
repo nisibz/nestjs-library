@@ -21,14 +21,19 @@ export class BooksService {
 
   private transformBookResponse<T extends { coverImage?: string | null }>(
     book: T,
+    request?: any,
   ): T {
     if (book.coverImage) {
-      book.coverImage = this.fileService.getFileUrl(book.coverImage);
+      book.coverImage = this.fileService.getFileUrl(book.coverImage, request);
     }
     return book;
   }
 
-  async create(createBookDto: CreateBookDto, file?: Express.Multer.File) {
+  async create(
+    createBookDto: CreateBookDto,
+    file?: Express.Multer.File,
+    request?: any,
+  ) {
     const existingBook = await this.booksRepository.findByIsbn(
       createBookDto.isbn,
     );
@@ -46,29 +51,35 @@ export class BooksService {
       coverImage,
     });
 
-    return this.transformBookResponse(book);
+    return this.transformBookResponse(book, request);
   }
 
-  async findAll(query: FindAllBooksQuery = {}): Promise<PaginatedBooks> {
+  async findAll(
+    query: FindAllBooksQuery = {},
+    request?: any,
+  ): Promise<PaginatedBooks> {
     const result = await this.booksRepository.findAll(query);
-    result.data = result.data.map((book) => this.transformBookResponse(book));
+    result.data = result.data.map((book) =>
+      this.transformBookResponse(book, request),
+    );
     return result;
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, request?: any) {
     const book = await this.booksRepository.findOne(id);
 
     if (!book) {
       throw new NotFoundException(`Book with ID ${id} not found`);
     }
 
-    return this.transformBookResponse(book);
+    return this.transformBookResponse(book, request);
   }
 
   async update(
     id: number,
     updateBookDto: UpdateBookDto,
     file?: Express.Multer.File,
+    request?: any,
   ) {
     // Get the raw book without URL transformation for file operations
     const existingBook = await this.booksRepository.findOne(id);
@@ -99,7 +110,7 @@ export class BooksService {
       ...(coverImage !== undefined && { coverImage }),
     });
 
-    return this.transformBookResponse(updatedBook);
+    return this.transformBookResponse(updatedBook, request);
   }
 
   async remove(id: number) {

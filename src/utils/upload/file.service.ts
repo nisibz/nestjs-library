@@ -18,8 +18,15 @@ export class FileService {
     deleteFile(fullPath);
   }
 
-  getFileUrl(relativePath: string): string | null {
+  getFileUrl(relativePath: string, request?: any): string | null {
     if (!relativePath) return null;
+
+    // If request is provided, build full URL with hostname
+    if (request) {
+      const protocol = request.secure ? 'https' : 'http';
+      const host = request.get('host');
+      return `${protocol}://${host}/uploads/${relativePath}`;
+    }
 
     // Return a URL path that can be served by the application
     return `/uploads/${relativePath}`;

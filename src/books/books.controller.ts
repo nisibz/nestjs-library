@@ -9,6 +9,7 @@ import {
   Query,
   UseInterceptors,
   UploadedFile,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BooksService } from './books.service';
@@ -25,8 +26,9 @@ export class BooksController {
   create(
     @Body() createBookDto: CreateBookDto,
     @UploadedFile() file?: Express.Multer.File,
+    @Req() request?: any,
   ) {
-    return this.booksService.create(createBookDto, file);
+    return this.booksService.create(createBookDto, file, request);
   }
 
   @Get()
@@ -34,17 +36,21 @@ export class BooksController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('search') search?: string,
+    @Req() request?: any,
   ) {
-    return this.booksService.findAll({
-      page: page ? parseInt(page, 10) : undefined,
-      limit: limit ? parseInt(limit, 10) : undefined,
-      search,
-    });
+    return this.booksService.findAll(
+      {
+        page: page ? parseInt(page, 10) : undefined,
+        limit: limit ? parseInt(limit, 10) : undefined,
+        search,
+      },
+      request,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.booksService.findOne(+id);
+  findOne(@Param('id') id: string, @Req() request?: any) {
+    return this.booksService.findOne(+id, request);
   }
 
   @Patch(':id')
@@ -53,8 +59,9 @@ export class BooksController {
     @Param('id') id: string,
     @Body() updateBookDto: UpdateBookDto,
     @UploadedFile() file?: Express.Multer.File,
+    @Req() request?: any,
   ) {
-    return this.booksService.update(+id, updateBookDto, file);
+    return this.booksService.update(+id, updateBookDto, file, request);
   }
 
   @Delete(':id')
