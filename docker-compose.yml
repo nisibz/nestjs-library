@@ -6,6 +6,7 @@ services:
       - ${PORT}:${PORT}
     volumes:
       - .:/app
+      - ./uploads:/app/uploads
     depends_on:
       - postgres
     environment:

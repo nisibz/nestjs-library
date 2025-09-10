@@ -64,14 +64,16 @@ describe('BooksController', () => {
         author: 'Test Author',
         isbn: '1234567890',
         publicationYear: 2023,
-        coverImage: 'test-cover.jpg',
       };
 
       mockBooksService.create.mockResolvedValue(mockBook);
 
       const result = await controller.create(createBookDto);
 
-      expect(mockBooksService.create).toHaveBeenCalledWith(createBookDto);
+      expect(mockBooksService.create).toHaveBeenCalledWith(
+        createBookDto,
+        undefined,
+      );
       expect(result).toEqual(mockBook);
     });
   });
@@ -139,7 +141,11 @@ describe('BooksController', () => {
 
       const result = await controller.update('1', updateBookDto);
 
-      expect(mockBooksService.update).toHaveBeenCalledWith(1, updateBookDto);
+      expect(mockBooksService.update).toHaveBeenCalledWith(
+        1,
+        updateBookDto,
+        undefined,
+      );
       expect(result).toEqual(updatedBook);
     });
   });
