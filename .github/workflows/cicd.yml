@@ -1,0 +1,106 @@
+name: Build & Deploy to Cloud Run
+
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  TAG_NAME: ${{github.ref_name}}
+  REGION: ${{ vars.REGION }}
+  REPOSITORY: ${{ vars.REPOSITORY }}
+  IMAGE_NAME: ${{ vars.IMAGE_NAME }}
+  PROJECT_ID: ${{ vars.PROJECT_ID }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  DOCKERFILE_NAME: ${{ vars.DOCKERFILE_NAME }}
+  PORT: ${{ vars.PORT }}
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set IMAGE_URI
+        run: |
+          IMAGE_URI="${{env.REGION}}-docker.pkg.dev/${{env.PROJECT_ID}}/${{env.REPOSITORY}}/${{env.IMAGE_NAME}}:${{env.TAG_NAME}}"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{env.PROJECT_ID}}
+          version: 'latest'
+
+      - name: Configure Docker to use Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{env.REGION}}-docker.pkg.dev
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{env.DOCKERFILE_NAME}}
+          push: true
+          tags: ${{env.IMAGE_URI}}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        run: |
+          # Store current revision for potential rollback
+          CURRENT_REVISION=$(gcloud run services describe ${{env.SERVICE_NAME}} --region=${{env.REGION}} --format="value(status.latestReadyRevisionName)" 2>/dev/null || echo "")
+          echo "CURRENT_REVISION=$CURRENT_REVISION" >> $GITHUB_OUTPUT
+
+          # Create environment variables file
+          cat > env_vars.yaml << 'EOF'
+          DATABASE_URL: "${{ secrets.DATABASE_URL }}"
+          EOF
+
+          # Deploy new revision
+          gcloud run deploy ${{env.SERVICE_NAME}} \
+            --image ${{env.IMAGE_URI}} \
+            --region ${{env.REGION}} \
+            --platform managed \
+            --allow-unauthenticated \
+            --port ${{env.PORT}} \
+            --env-vars-file env_vars.yaml \
+            --quiet
+
+      - name: Verify deployment
+        id: verify
+        run: |
+          # Get the service URL
+          SERVICE_URL=$(gcloud run services describe ${{env.SERVICE_NAME}} --region=${{env.REGION}} --format="value(status.url)")
+          echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+          # Basic health check
+          if ! curl -f --max-time 30 --retry 3 --retry-delay 5 "$SERVICE_URL" > /dev/null 2>&1; then
+            echo "Health check failed for $SERVICE_URL"
+            exit 1
+          fi
+
+          echo "Deployment verified successfully at $SERVICE_URL"
+
+      - name: Rollback on failure
+        if: failure() && steps.deploy.outputs.CURRENT_REVISION != ''
+        run: |
+          echo "Deployment failed, rolling back to previous revision: ${{steps.deploy.outputs.CURRENT_REVISION}}"
+          gcloud run services update-traffic ${{env.SERVICE_NAME}} \
+            --region=${{env.REGION}} \
+            --to-revisions=${{steps.deploy.outputs.CURRENT_REVISION}}=100 \
+            --quiet
+
+          echo "Rollback completed"
+          exit 1
