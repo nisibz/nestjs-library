@@ -66,6 +66,8 @@ jobs:
           # Create environment variables file
           cat > env_vars.yaml << 'EOF'
           DATABASE_URL: "${{ secrets.DATABASE_URL }}"
+          JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+          JWT_EXPIRES_IN: "${{ secrets.JWT_EXPIRES_IN }}"
           EOF
 
           # Deploy new revision
