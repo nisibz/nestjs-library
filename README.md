@@ -1,98 +1,256 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# NestJS Library Management System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A comprehensive library management system built with NestJS, featuring book management, user authentication, file uploads, and request logging.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- Complete CRUD operations for books with cover image uploads
+- User authentication with JWT tokens and bcrypt password hashing
+- Book borrowing and returning system with transaction tracking
+- File upload functionality with static asset serving
+- Comprehensive HTTP request logging middleware
+- Database management with Prisma ORM and PostgreSQL
+- Type-safe implementation with TypeScript and validation pipes
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Getting Started
 
-## Project setup
+### Prerequisites
 
-```bash
-$ pnpm install
+- Node.js 18.x or later
+- pnpm
+- PostgreSQL database
+- Docker (optional)
+
+### Installation
+
+Clone this repository:
+
+```
+git clone https://github.com/nisibz/nestjs-library-tests.git
+cd nestjs-library-tests
 ```
 
-## Compile and run the project
+## Development Mode
+
+### Local Setup
+
+1. Install dependencies:
 
 ```bash
-# development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+pnpm install
 ```
 
-## Run tests
+2. Set up your environment variables:
 
 ```bash
-# unit tests
-$ pnpm run test
+# Copy the example environment file
+cp .env.example .env
 
-# e2e tests
-$ pnpm run test:e2e
-
-# test coverage
-$ pnpm run test:cov
+# Edit .env with your database configuration
+DATABASE_URL="postgresql://username:password@localhost:5432/library"
+JWT_SECRET="your-jwt-secret"
+PORT=3100
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+3. Set up the database:
 
 ```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
+# Generate Prisma client
+npx prisma generate
+
+# Run database migrations
+npx prisma migrate dev
+
+# Seed the database (optional)
+npx prisma db seed
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+4. Start the development server:
 
-## Resources
+```bash
+pnpm run start:dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+5. Open [http://localhost:3100](http://localhost:3100) in your browser
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Docker Development Setup
 
-## Support
+1. Create the Docker network:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```bash
+docker network create library-network
+```
 
-## Stay in touch
+2. Start the development containers:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```bash
+docker compose up -d
+```
 
-## License
+3. Run database migrations:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+```bash
+npx prisma migrate dev
+```
+
+4. Access the application at [http://localhost:3100](http://localhost:3100)
+
+To stop the containers:
+
+```bash
+docker compose down
+```
+
+### Database Management
+
+View and manage your database with Prisma Studio:
+
+```bash
+npx prisma studio
+```
+
+## Production Mode
+
+### Local Production Setup
+
+1. Create an optimized production build:
+
+```bash
+pnpm run build
+```
+
+2. Run database migrations:
+
+```bash
+npx prisma migrate deploy
+```
+
+3. Start the production server:
+
+```bash
+pnpm run start:prod
+```
+
+4. Access the application at [http://localhost:3100](http://localhost:3100)
+
+### Docker Production Setup
+
+1. Build the production Docker image:
+
+```bash
+docker build -t nestjs-library:prod -f Dockerfile.prod .
+```
+
+2. Create production environment file:
+
+```bash
+cp .env.example .env.production
+# Edit .env.production with your production configuration
+```
+
+3. Run the production container:
+
+```bash
+docker run -p 3100:3100 \
+  --env-file .env.production \
+  --name nestjs-library-prod \
+  nestjs-library:prod
+```
+
+4. Access the application at [http://localhost:3100](http://localhost:3100)
+
+To stop the production container:
+
+```bash
+docker stop nestjs-library-prod
+docker rm nestjs-library-prod
+```
+
+## Development Commands
+
+### Package Management
+
+- Install dependencies: `pnpm install`
+
+### Development Server
+
+- Start development server: `pnpm run start:dev` (includes watch mode)
+- Start production server: `pnpm run start:prod`
+- Debug mode: `pnpm run start:debug`
+
+### Build and Linting
+
+- Build project: `pnpm run build`
+- Lint code: `pnpm run lint` (auto-fixes issues)
+- Format code: `pnpm run format`
+
+### Testing
+
+- Run unit tests: `pnpm run test`
+- Watch mode: `pnpm run test:watch`
+- E2E tests: `pnpm run test:e2e`
+- Coverage report: `pnpm run test:cov`
+- Debug tests: `pnpm run test:debug`
+
+### Database
+
+- Generate Prisma client: `npx prisma generate`
+- Run migrations: `npx prisma migrate dev`
+- Seed database: `npx prisma db seed`
+- Prisma Studio: `npx prisma studio`
+
+## API Documentation
+
+The application provides the following main endpoints:
+
+### Authentication
+
+- `POST /auth/register` - User registration
+- `POST /auth/login` - User login
+
+### Books Management
+
+- `GET /books` - List all books (requires authentication)
+- `POST /books` - Create a new book (requires authentication)
+- `GET /books/:id` - Get book details
+- `PATCH /books/:id` - Update book information
+- `DELETE /books/:id` - Delete a book
+- `POST /books/:id/borrow` - Borrow a book
+- `POST /books/:id/return` - Return a book
+- `GET /books/:id/transactions` - View book transaction history
+
+### User Management
+
+- `GET /user/borrowed-books` - Get user's borrowed books (requires authentication)
+
+### File Uploads
+
+- Book cover images can be uploaded via multipart/form-data
+- Static files served at `/uploads/` endpoint
+
+## Technology Stack
+
+- **Framework**: NestJS - Progressive Node.js framework
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT tokens with bcrypt password hashing
+- **File Upload**: Multer with local file storage
+- **Validation**: class-validator with ValidationPipe
+- **Logging**: Built-in NestJS Logger with custom HTTP middleware
+- **Language**: TypeScript with strict type checking
+
+## Architecture
+
+### Core Structure
+
+- **Database Layer**: Prisma ORM with PostgreSQL
+- **Service Layer**: Repository pattern with dedicated service classes
+- **API Layer**: REST controllers with validation and file upload support
+- **File Management**: Custom file service with multer integration
+
+### Key Modules
+
+1. **PrismaModule** (`src/prisma/`): Database connection and service
+2. **AuthModule** (`src/auth/`): User authentication and authorization
+3. **BooksModule** (`src/books/`): Complete CRUD operations for books with file uploads
+4. **UserModule** (`src/user/`): User management and borrowed books tracking
+5. **Upload Utils** (`src/utils/upload/`): File handling, multer configuration, and path management
