@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as path from 'path';
 import { deleteFile, getUploadPath } from './upload.utils';
+import { RequestWithUser } from '../../types/request.interface';
 
 @Injectable()
 export class FileService {
@@ -18,7 +19,7 @@ export class FileService {
     deleteFile(fullPath);
   }
 
-  getFileUrl(relativePath: string, request?: any): string | null {
+  getFileUrl(relativePath: string, request?: RequestWithUser): string | null {
     if (!relativePath) return null;
 
     // If request is provided, build full URL with hostname

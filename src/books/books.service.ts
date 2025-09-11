@@ -11,6 +11,7 @@ import {
   PaginatedBooks,
 } from './books.repository';
 import { FileService } from '../utils/upload/file.service';
+import { RequestWithUser } from '../types/request.interface';
 
 @Injectable()
 export class BooksService {
@@ -21,7 +22,7 @@ export class BooksService {
 
   private transformBookResponse<T extends { coverImage?: string | null }>(
     book: T,
-    request?: any,
+    request?: RequestWithUser,
   ): T {
     if (book.coverImage) {
       book.coverImage = this.fileService.getFileUrl(book.coverImage, request);
@@ -32,7 +33,7 @@ export class BooksService {
   async create(
     createBookDto: CreateBookDto,
     file?: Express.Multer.File,
-    request?: any,
+    request?: RequestWithUser,
   ) {
     const existingBook = await this.booksRepository.findByIsbn(
       createBookDto.isbn,
@@ -56,7 +57,7 @@ export class BooksService {
 
   async findAll(
     query: FindAllBooksQuery = {},
-    request?: any,
+    request?: RequestWithUser,
   ): Promise<PaginatedBooks> {
     const result = await this.booksRepository.findAll(query);
     result.data = result.data.map((book) =>
@@ -65,21 +66,35 @@ export class BooksService {
     return result;
   }
 
-  async findOne(id: number, request?: any) {
-    const book = await this.booksRepository.findOne(id);
+  async findOne(id: number, request?: RequestWithUser) {
+    const bookWithTransaction =
+      await this.booksRepository.findOneWithActiveTransactions(id);
 
-    if (!book) {
+    if (!bookWithTransaction) {
       throw new NotFoundException(`Book with ID ${id} not found`);
     }
 
-    return this.transformBookResponse(book, request);
+    // Get all active transactions (returnDate is null)
+    const activeTransactions = bookWithTransaction.transactions;
+
+    // Create response object
+    const response = {
+      ...bookWithTransaction,
+      activeTransactions,
+      transactions: undefined, // Remove the transactions array from response
+    };
+
+    // Remove transactions property completely
+    delete response.transactions;
+
+    return this.transformBookResponse(response, request);
   }
 
   async update(
     id: number,
     updateBookDto: UpdateBookDto,
     file?: Express.Multer.File,
-    request?: any,
+    request?: RequestWithUser,
   ) {
     // Get the raw book without URL transformation for file operations
     const existingBook = await this.booksRepository.findOne(id);

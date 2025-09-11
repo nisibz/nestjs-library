@@ -78,6 +78,30 @@ export class BooksRepository {
     });
   }
 
+  async findOneWithActiveTransactions(id: number) {
+    return this.prisma.book.findUnique({
+      where: { id },
+      include: {
+        transactions: {
+          where: {
+            returnDate: null,
+          },
+          orderBy: {
+            borrowDate: 'desc',
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async update(id: number, updateBookDto: UpdateBookDto): Promise<Book> {
     return this.prisma.book.update({
       where: { id },
@@ -88,6 +112,28 @@ export class BooksRepository {
   async remove(id: number): Promise<Book> {
     return this.prisma.book.delete({
       where: { id },
+    });
+  }
+
+  async decreaseQuantity(id: number): Promise<Book> {
+    return this.prisma.book.update({
+      where: { id },
+      data: {
+        quantity: {
+          decrement: 1,
+        },
+      },
+    });
+  }
+
+  async increaseQuantity(id: number): Promise<Book> {
+    return this.prisma.book.update({
+      where: { id },
+      data: {
+        quantity: {
+          increment: 1,
+        },
+      },
     });
   }
 }

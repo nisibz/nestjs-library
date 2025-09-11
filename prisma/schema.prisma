@@ -14,16 +14,46 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           Int               @id @default(autoincrement())
+  username     String            @unique
+  password     String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  transactions BookTransaction[]
+
+  @@index([username])
+}
+
 model Book {
-  id              Int      @id @default(autoincrement())
+  id              Int               @id @default(autoincrement())
   title           String
   author          String
-  isbn            String   @unique
+  isbn            String            @unique
   publicationYear Int
   coverImage      String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  quantity        Int               @default(1)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  transactions    BookTransaction[]
 
   @@index([title])
   @@index([author])
+}
+
+model BookTransaction {
+  id         Int       @id @default(autoincrement())
+  bookId     Int
+  userId     Int
+  borrowDate DateTime  @default(now())
+  returnDate DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+  @@index([userId])
+  @@index([borrowDate])
 }
